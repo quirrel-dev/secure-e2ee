@@ -1,6 +1,6 @@
 {
   "name": "secure-e2ee",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Secure end-to-end-encryption",
   "main": "dist/index.js",
   "author": "Simon Knott",
