@@ -1,0 +1,13 @@
+{
+  "name": "secure-e2ee",
+  "version": "0.0.1",
+  "description": "Secure end-to-end-encryption",
+  "main": "dist/index.js",
+  "author": "Simon Knott",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^26.5.2",
+    "ts-jest": "^26.4.1",
+    "typescript": "^4.0.3"
+  }
+}
