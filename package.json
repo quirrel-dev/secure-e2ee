@@ -5,6 +5,9 @@
   "main": "dist/index.js",
   "author": "Simon Knott",
   "license": "MIT",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest",
