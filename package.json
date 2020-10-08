@@ -5,6 +5,11 @@
   "main": "dist/index.js",
   "author": "Simon Knott",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "prepack": "yarn build"
+  },
   "devDependencies": {
     "jest": "^26.5.2",
     "ts-jest": "^26.4.1",

@@ -9,50 +9,83 @@ import * as hash from "./hash";
 
 const algo = "aes-256-gcm";
 
-export class Encrypter {
-  private readonly decryptionSecretsById: Record<string, string> = {};
+interface EncryptedMessage {
+  secretDescriptor: string;
+  cipher: Buffer;
+  initialisationVector: Buffer;
+}
 
-  private readonly cipher;
+export class Encrypter {
+  private readonly decryptionSecretsByDescriptor: Record<string, string> = {};
 
   constructor(
     private readonly encryptionSecret: string,
-    decryptionSecrets: string[],
+    decryptionSecrets: string[] = [encryptionSecret]
   ) {
     for (const s of decryptionSecrets) {
-      const id = Encrypter.secretToId(s);
-      this.decryptionSecretsById[id] = s;
+      const id = Encrypter.getSecretDescriptor(s);
+      this.decryptionSecretsByDescriptor[id] = s;
     }
-
-    this.cipher = crypto.createCipheriv(
-      algo,
-      encryptionSecret,
-    );
   }
 
-  static secretToId(secret: string): string {
+  static getSecretDescriptor(secret: string): string {
     return hash.md5(secret).slice(0, 4);
   }
 
+  static generateInitialisationVector() {
+    return crypto.randomBytes(16);
+  }
+
+  static packMessage(message: EncryptedMessage) {
+    return [
+      message.secretDescriptor,
+      message.initialisationVector.toString("base64"),
+      message.cipher.toString("base64"),
+    ].join(":");
+  }
+
+  static unpackMessage(message: string): EncryptedMessage {
+    const [secretDescriptor, initialisationVector, cipher] = message.split(":");
+    return {
+      secretDescriptor,
+      initialisationVector: Buffer.from(initialisationVector, "base64"),
+      cipher: Buffer.from(cipher, "base64"),
+    };
+  }
+
   public encrypt(input: string): string {
-    const id = Encrypter.secretToId(this.encryptionSecret);
+    const secretDescriptor = Encrypter.getSecretDescriptor(
+      this.encryptionSecret
+    );
+    const iv = Encrypter.generateInitialisationVector();
 
-    let encryptedInput = this.cipher.update(input, "utf8", "hex");
-    encryptedInput += this.cipher.final("hex");
+    const cipher = crypto.createCipheriv(algo, this.encryptionSecret, iv);
 
-    return `${id}:${encryptedInput}`;
+    const encryptedInput = Buffer.concat([
+      cipher.update(input, "utf8"),
+      cipher.final(),
+    ]);
+
+    return Encrypter.packMessage({
+      cipher: encryptedInput,
+      initialisationVector: iv,
+      secretDescriptor: secretDescriptor,
+    });
   }
 
   public decrypt(string: string): string {
-    const indexOfFirstColon = string.indexOf(":");
-    const id = string.slice(0, indexOfFirstColon);
-    const cipher = string.slice(indexOfFirstColon + 1);
+    const {
+      cipher,
+      initialisationVector,
+      secretDescriptor,
+    } = Encrypter.unpackMessage(string);
 
-    const key = this.decryptionSecretsById[id];
+    const key = this.decryptionSecretsByDescriptor[secretDescriptor];
+    if (!key) {
+      throw new Error("Could not decrypt: No matching secret.");
+    }
 
-    const decipher = crypto.createDecipheriv(
-      algo,
-      key,
-    );
+    const decipher = crypto.createDecipheriv(algo, key, initialisationVector);
 
     return decipher.update(cipher, "hex", "utf8");
   }
