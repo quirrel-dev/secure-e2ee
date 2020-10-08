@@ -80,7 +80,7 @@ function unpackMessage(message: string): EncryptedMessage {
   };
 }
 
-export class Encrypter {
+export class Encryptor {
   private readonly decryptionSecretsByDescriptor: Record<string, string> = {};
 
   constructor(
