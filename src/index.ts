@@ -1,3 +1,3 @@
-import { Encrypter } from "./encrypter";
+import { Encryptor } from "./encryptor";
 
-export default Encrypter;
+export default Encryptor;
