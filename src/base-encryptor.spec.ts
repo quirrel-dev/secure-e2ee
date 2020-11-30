@@ -1,7 +1,9 @@
 import type { Encryptor as EncryptorClass } from "./encryptor";
 import { expect } from "chai";
 
-export function testEncryptor(Encryptor: typeof EncryptorClass) {
+export function testEncryptor(_Encryptor: any) {
+  const Encryptor = _Encryptor as typeof EncryptorClass;
+
   describe(Encryptor.name, () => {
     describe("getSecretDescriptor", () => {
       const encryptor = new Encryptor("e761daf732c272ee0db9bd71f49c66a0");
