@@ -19,6 +19,14 @@ export function testEncryptor(_Encryptor: any) {
       });
     });
 
+    it("generateInitialisationVecotr", () => {
+      expect(
+        new Encryptor(
+          "e761daf732c272ee0db9bd71f49c66a0"
+        ).generateInitialisationVector()
+      ).to.have.length(16);
+    });
+
     describe("when given an invalid secret", () => {
       it("throws", () => {
         expect(() => new Encryptor("too-short")).to.throw(

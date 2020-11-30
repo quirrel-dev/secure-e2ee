@@ -41,10 +41,12 @@ descriptor over the networks, that indicates
 which secret should be used for decryption.
 */
 
+import b64 from "base64-js";
+
 interface EncryptedMessage {
   secretDescriptor: string;
-  cipher: Buffer;
-  initialisationVector: Buffer;
+  cipher: Uint8Array;
+  initialisationVector: Uint8Array;
 }
 
 function isValidSecret(string: String): boolean {
@@ -54,8 +56,8 @@ function isValidSecret(string: String): boolean {
 function packMessage(message: EncryptedMessage) {
   return [
     message.secretDescriptor,
-    message.initialisationVector.toString("base64"),
-    message.cipher.toString("base64"),
+    b64.fromByteArray(message.initialisationVector),
+    b64.fromByteArray(message.cipher),
   ].join(":");
 }
 
@@ -63,8 +65,8 @@ function unpackMessage(message: string): EncryptedMessage {
   const [secretDescriptor, initialisationVector, cipher] = message.split(":");
   return {
     secretDescriptor,
-    initialisationVector: Buffer.from(initialisationVector, "base64"),
-    cipher: Buffer.from(cipher, "base64"),
+    initialisationVector: b64.toByteArray(initialisationVector),
+    cipher: b64.toByteArray(cipher),
   };
 }
 
@@ -99,7 +101,7 @@ export abstract class BaseEncryptor {
     return this.md5(secret).slice(0, 4);
   }
 
-  protected abstract generateInitialisationVector(): Buffer;
+  abstract generateInitialisationVector(): Uint8Array;
 
   public async encrypt(input: string): Promise<string> {
     const secretDescriptor = this.getSecretDescriptor(this.encryptionSecret);
@@ -120,9 +122,9 @@ export abstract class BaseEncryptor {
 
   protected abstract _encrypt(
     input: string,
-    iv: Buffer,
+    iv: Uint8Array,
     key: string
-  ): Promise<Buffer>;
+  ): Promise<Uint8Array>;
 
   public async decrypt(string: string): Promise<string> {
     const { cipher, initialisationVector, secretDescriptor } = unpackMessage(
@@ -138,8 +140,8 @@ export abstract class BaseEncryptor {
   }
 
   protected abstract _decrypt(
-    cipher: Buffer,
-    iv: Buffer,
+    cipher: Uint8Array,
+    iv: Uint8Array,
     key: string
   ): Promise<string>;
 }

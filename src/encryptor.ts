@@ -11,15 +11,15 @@ export class Encryptor extends BaseEncryptor {
     return hash.digest("hex");
   }
   
-  protected generateInitialisationVector(): Buffer {
+  generateInitialisationVector(): Buffer {
     return crypto.randomBytes(16);
   }
 
   protected async _encrypt(
     input: string,
-    iv: Buffer,
+    iv: Uint8Array,
     key: string
-  ): Promise<Buffer> {
+  ): Promise<Uint8Array> {
     const cipher = crypto.createCipheriv(algo, key, iv);
 
     const encryptedInput = Buffer.concat([
@@ -29,9 +29,10 @@ export class Encryptor extends BaseEncryptor {
 
     return encryptedInput;
   }
+  
   protected async _decrypt(
-    cipher: Buffer,
-    iv: Buffer,
+    cipher: Uint8Array,
+    iv: Uint8Array,
     key: string
   ): Promise<string> {
     const decipher = crypto.createDecipheriv(algo, key, iv);
