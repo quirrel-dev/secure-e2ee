@@ -41,8 +41,6 @@ descriptor over the networks, that indicates
 which secret should be used for decryption.
 */
 
-import * as hash from "./hash";
-
 interface EncryptedMessage {
   secretDescriptor: string;
   cipher: Buffer;
@@ -51,10 +49,6 @@ interface EncryptedMessage {
 
 function isValidSecret(string: String): boolean {
   return string.length === 32;
-}
-
-export function getSecretDescriptor(secret: string): string {
-  return hash.md5(secret).slice(0, 4);
 }
 
 function packMessage(message: EncryptedMessage) {
@@ -94,18 +88,28 @@ export abstract class BaseEncryptor {
         );
       }
 
-      const id = getSecretDescriptor(s);
+      const id = this.getSecretDescriptor(s);
       this.decryptionSecretsByDescriptor[id] = s;
     }
+  }
+
+  protected abstract md5(input: string): string;
+
+  public getSecretDescriptor(secret: string): string {
+    return this.md5(secret).slice(0, 4);
   }
 
   protected abstract generateInitialisationVector(): Buffer;
 
   public async encrypt(input: string): Promise<string> {
-    const secretDescriptor = getSecretDescriptor(this.encryptionSecret);
+    const secretDescriptor = this.getSecretDescriptor(this.encryptionSecret);
     const iv = this.generateInitialisationVector();
 
-    const encryptedInput = await this._encrypt(input, iv, this.encryptionSecret);
+    const encryptedInput = await this._encrypt(
+      input,
+      iv,
+      this.encryptionSecret
+    );
 
     return packMessage({
       cipher: encryptedInput,

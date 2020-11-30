@@ -1,6 +1,18 @@
 import { Encryptor } from "./encryptor";
 
 describe("Encryptor", () => {
+  describe("getSecretDescriptor", () => {
+    const encryptor = new Encryptor("e761daf732c272ee0db9bd71f49c66a0");
+
+    it.each([
+      ["abcde", "ab56"],
+      ["dasda", "8f40"],
+      ["e761daf732c272ee0db9bd71f49c66a0", "122e"],
+    ])(`getSecretDescriptor("%s") == "%s"`, (input, output) => {
+      expect(encryptor.getSecretDescriptor(input)).toEqual(output);
+    });
+  });
+
   describe("when given an invalid secret", () => {
     it("throws", () => {
       expect(() => new Encryptor("too-short")).toThrowError(
@@ -62,7 +74,9 @@ describe("Encryptor", () => {
 
           const newEncryptor = new Encryptor(newSecret);
 
-          expect(newEncryptor.decrypt(cipher_text)).rejects.toEqual(Error("Could not decrypt: No matching secret."));
+          expect(newEncryptor.decrypt(cipher_text)).rejects.toEqual(
+            Error("Could not decrypt: No matching secret.")
+          );
         });
       });
     });

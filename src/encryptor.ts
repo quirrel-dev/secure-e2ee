@@ -4,6 +4,13 @@ import { BaseEncryptor } from "./base-encryptor";
 const algo = "aes-256-gcm";
 
 export class Encryptor extends BaseEncryptor {
+
+  protected md5(input: string): string {
+    const hash = crypto.createHash("md5");
+    hash.update(input);
+    return hash.digest("hex");
+  }
+  
   protected generateInitialisationVector(): Buffer {
     return crypto.randomBytes(16);
   }
