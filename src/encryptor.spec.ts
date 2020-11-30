@@ -1,27 +1,30 @@
 import { Encryptor } from "./encryptor";
+import { expect } from "chai";
 
 describe("Encryptor", () => {
   describe("getSecretDescriptor", () => {
     const encryptor = new Encryptor("e761daf732c272ee0db9bd71f49c66a0");
 
-    it.each([
+    [
       ["abcde", "ab56"],
       ["dasda", "8f40"],
       ["e761daf732c272ee0db9bd71f49c66a0", "122e"],
-    ])(`getSecretDescriptor("%s") == "%s"`, (input, output) => {
-      expect(encryptor.getSecretDescriptor(input)).toEqual(output);
+    ].forEach(([input, output]) => {
+      it(`getSecretDescriptor("${input}") == "${output}"`, () => {
+        expect(encryptor.getSecretDescriptor(input)).to.equal(output);
+      });
     });
   });
 
   describe("when given an invalid secret", () => {
     it("throws", () => {
-      expect(() => new Encryptor("too-short")).toThrowError(
+      expect(() => new Encryptor("too-short")).to.throw(
         "`encryptionSecret` needs to be 32 characters, but was 9 characters."
       );
 
       expect(
         () => new Encryptor("e761daf732c272ee0db9bd71f49c66a0", ["too-short"])
-      ).toThrowError(
+      ).to.throw(
         "decryptionSecrets needs to be 32 characters, but was 9 characters."
       );
     });
@@ -39,7 +42,7 @@ describe("Encryptor", () => {
 
         const deciphered_text = await encryptor.decrypt(ciphered_message);
 
-        expect(deciphered_text).toEqual(input);
+        expect(deciphered_text).to.equal(input);
       });
     });
 
@@ -58,7 +61,7 @@ describe("Encryptor", () => {
 
         const deciphered_text = await newEncryptor.decrypt(cipher_text);
 
-        expect(deciphered_text).toEqual(input);
+        expect(deciphered_text).to.equal(input);
       });
 
       describe("and used secret not existing", () => {
@@ -74,9 +77,14 @@ describe("Encryptor", () => {
 
           const newEncryptor = new Encryptor(newSecret);
 
-          expect(newEncryptor.decrypt(cipher_text)).rejects.toEqual(
-            Error("Could not decrypt: No matching secret.")
-          );
+          try {
+            await newEncryptor.decrypt(cipher_text);
+          } catch (error) {
+            expect(error).to.be.instanceOf(Error);
+            expect(error.message).to.equal(
+              "Could not decrypt: No matching secret."
+            );
+          }
         });
       });
     });
