@@ -40,3 +40,5 @@ export class Encryptor extends BaseEncryptor {
     return decipher.update(cipher, "hex", "utf8");
   }
 }
+
+export default Encryptor

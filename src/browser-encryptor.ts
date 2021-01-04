@@ -20,7 +20,7 @@ export class BrowserEncryptor extends BaseEncryptor {
   protected md5(input: string): string {
     return md5(input);
   }
-  
+
   generateInitialisationVector(): Uint8Array {
     return window.crypto.getRandomValues(new Uint8Array(16));
   }
@@ -58,3 +58,5 @@ export class BrowserEncryptor extends BaseEncryptor {
     return textDecoder.decode(result);
   }
 }
+
+export default BrowserEncryptor;
