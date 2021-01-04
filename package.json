@@ -1,6 +1,6 @@
 {
   "name": "secure-e2ee",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Secure end-to-end-encryption",
   "main": "dist/encryptor.js",
   "browser": "dist/browser-encryptor.js",
