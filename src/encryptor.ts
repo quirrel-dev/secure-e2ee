@@ -18,7 +18,7 @@ export class Encryptor extends BaseEncryptor {
     input: string,
     iv: Uint8Array,
     key: string
-  ): Promise<Uint8Array> {
+  ): Promise<[cipher: Uint8Array, authTag: Uint8Array]> {
     const cipher = crypto.createCipheriv(algo, key, iv, {
       authTagLength: 16,
     });
@@ -26,14 +26,14 @@ export class Encryptor extends BaseEncryptor {
     const encryptedInput = Buffer.concat([
       cipher.update(input, "utf8"),
       cipher.final(),
-      cipher.getAuthTag(),
     ]);
 
-    return encryptedInput;
+    return [encryptedInput, cipher.getAuthTag()];
   }
 
   protected async _decrypt(
     cipher: Uint8Array,
+    authTag: Uint8Array | undefined,
     iv: Uint8Array,
     key: string
   ): Promise<string> {
@@ -41,10 +41,12 @@ export class Encryptor extends BaseEncryptor {
       authTagLength: 16,
     });
 
-    decipher.setAuthTag(cipher.slice(cipher.byteLength - 16));
+    if (authTag) {
+      decipher.setAuthTag(authTag);
+    }
 
     return decipher.update(
-      cipher.slice(0, cipher.byteLength - 16),
+      cipher,
       "hex",
       "utf8"
     );

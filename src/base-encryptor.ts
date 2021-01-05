@@ -47,6 +47,7 @@ interface EncryptedMessage {
   secretDescriptor: string;
   cipher: Uint8Array;
   initialisationVector: Uint8Array;
+  authTag?: Uint8Array;
 }
 
 function isValidSecret(string: String): boolean {
@@ -54,19 +55,31 @@ function isValidSecret(string: String): boolean {
 }
 
 function packMessage(message: EncryptedMessage) {
-  return [
+  const arr = [
     message.secretDescriptor,
     b64.fromByteArray(message.initialisationVector),
     b64.fromByteArray(message.cipher),
-  ].join(":");
+  ];
+
+  if (message.authTag) {
+    arr.push(b64.fromByteArray(message.authTag));
+  }
+
+  return arr.join(":");
 }
 
 function unpackMessage(message: string): EncryptedMessage {
-  const [secretDescriptor, initialisationVector, cipher] = message.split(":");
+  const [
+    secretDescriptor,
+    initialisationVector,
+    cipher,
+    authTag,
+  ] = message.split(":");
   return {
     secretDescriptor,
     initialisationVector: b64.toByteArray(initialisationVector),
     cipher: b64.toByteArray(cipher),
+    authTag: authTag ? b64.toByteArray(authTag) : undefined,
   };
 }
 
@@ -105,18 +118,19 @@ export abstract class BaseEncryptor {
 
   public async encrypt(input: string): Promise<string> {
     const secretDescriptor = this.getSecretDescriptor(this.encryptionSecret);
-    const iv = this.generateInitialisationVector();
+    const initialisationVector = this.generateInitialisationVector();
 
-    const encryptedInput = await this._encrypt(
+    const [cipher, authTag] = await this._encrypt(
       input,
-      iv,
+      initialisationVector,
       this.encryptionSecret
     );
 
     return packMessage({
-      cipher: encryptedInput,
-      initialisationVector: iv,
-      secretDescriptor: secretDescriptor,
+      cipher,
+      authTag,
+      initialisationVector,
+      secretDescriptor,
     });
   }
 
@@ -124,23 +138,27 @@ export abstract class BaseEncryptor {
     input: string,
     iv: Uint8Array,
     key: string
-  ): Promise<Uint8Array>;
+  ): Promise<[cipher: Uint8Array, authTag: Uint8Array]>;
 
   public async decrypt(string: string): Promise<string> {
-    const { cipher, initialisationVector, secretDescriptor } = unpackMessage(
-      string
-    );
+    const {
+      cipher,
+      initialisationVector,
+      secretDescriptor,
+      authTag,
+    } = unpackMessage(string);
 
     const key = this.decryptionSecretsByDescriptor[secretDescriptor];
     if (!key) {
       throw new Error("Could not decrypt: No matching secret.");
     }
 
-    return await this._decrypt(cipher, initialisationVector, key);
+    return await this._decrypt(cipher, authTag, initialisationVector, key);
   }
 
   protected abstract _decrypt(
     cipher: Uint8Array,
+    authTag: Uint8Array | undefined,
     iv: Uint8Array,
     key: string
   ): Promise<string>;

@@ -1,5 +1,6 @@
 import type { Encryptor as EncryptorClass } from "./encryptor";
 import { expect } from "chai";
+import { exec } from "child_process";
 
 export function testEncryptor(_Encryptor: any) {
   const Encryptor = _Encryptor as typeof EncryptorClass;
@@ -19,7 +20,7 @@ export function testEncryptor(_Encryptor: any) {
       });
     });
 
-    it("generateInitialisationVecotr", () => {
+    it("generateInitialisationVector", () => {
       expect(
         new Encryptor(
           "e761daf732c272ee0db9bd71f49c66a0"
@@ -89,7 +90,7 @@ export function testEncryptor(_Encryptor: any) {
         const ciphered_message = await encryptor.encrypt(input);
 
         expect(ciphered_message).to.eq(
-          "122e:Su+/ve+/vdyZQVNlLSwhbu+/ve+/ve+/ve+/vQ==:0MjARaXgGQPbyWCphrEEdAvhJa9n"
+          "122e:Su+/ve+/vdyZQVNlLSwhbu+/ve+/ve+/ve+/vQ==:0MjARaU=:4BkD28lgqYaxBHQL4SWvZw=="
         );
 
         const deciphered_text = await encryptor.decrypt(ciphered_message);
@@ -125,6 +126,34 @@ export function testEncryptor(_Encryptor: any) {
           const deciphered_text = await encryptor.decrypt(ciphered_message);
 
           expect(JSON.parse(deciphered_text)).to.be.null;
+        });
+      });
+
+      describe("with missing auth tag (old version)", () => {
+        it("works", async () => {
+          const secret = "e761daf732c272ee0db9bd71f49c66a0";
+          const input = "hello world";
+
+          const encryptor = new Encryptor(secret);
+
+          const ciphered_message = await encryptor.encrypt(input);
+
+          const withoutAuthTag = ciphered_message.slice(
+            0,
+            ciphered_message.lastIndexOf(":")
+          );
+
+          if (Encryptor.name === "BrowserEncryptor") {
+            try {
+              await encryptor.decrypt(withoutAuthTag);
+              expect("this").to.equal("should not be");
+            } catch (error) {
+              expect(error.message).to.be.equal("Could not decrypt: Auth tag missing.");
+            }
+          } else {
+            const deciphered_text = await encryptor.decrypt(withoutAuthTag);
+            expect(deciphered_text).to.equal("hello world");
+          }
         });
       });
 
