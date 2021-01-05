@@ -42,6 +42,62 @@ export function testEncryptor(_Encryptor: any) {
     });
 
     describe("encryption flow", () => {
+      it("when encrypting on one and decrypting on the other", async () => {
+        const secret = "e761daf732c272ee0db9bd71f49c66a0";
+
+        const encryptor = new Encryptor(secret);
+
+        let callsToIv = 0;
+        encryptor.generateInitialisationVector = () => {
+          callsToIv++;
+          return Buffer.from(
+            Uint8Array.from([
+              74,
+              239,
+              191,
+              189,
+              239,
+              191,
+              189,
+              220,
+              153,
+              65,
+              83,
+              101,
+              45,
+              44,
+              33,
+              110,
+              239,
+              191,
+              189,
+              239,
+              191,
+              189,
+              239,
+              191,
+              189,
+              239,
+              191,
+              189,
+            ])
+          );
+        };
+
+        const input = "abcde";
+
+        const ciphered_message = await encryptor.encrypt(input);
+
+        expect(ciphered_message).to.eq(
+          "122e:Su+/ve+/vdyZQVNlLSwhbu+/ve+/ve+/ve+/vQ==:0MjARaXgGQPbyWCphrEEdAvhJa9n"
+        );
+
+        const deciphered_text = await encryptor.decrypt(ciphered_message);
+        expect(deciphered_text).to.equal(input);
+
+        expect(callsToIv).to.eq(1);
+      });
+
       describe("with one secret", () => {
         it("works", async () => {
           const secret = "e761daf732c272ee0db9bd71f49c66a0";
@@ -54,6 +110,21 @@ export function testEncryptor(_Encryptor: any) {
           const deciphered_text = await encryptor.decrypt(ciphered_message);
 
           expect(deciphered_text).to.equal(input);
+        });
+      });
+
+      describe("with very small input", () => {
+        it("works", async () => {
+          const secret = "e761daf732c272ee0db9bd71f49c66a0";
+          const input = JSON.stringify(null);
+
+          const encryptor = new Encryptor(secret);
+
+          const ciphered_message = await encryptor.encrypt(input);
+
+          const deciphered_text = await encryptor.decrypt(ciphered_message);
+
+          expect(JSON.parse(deciphered_text)).to.be.null;
         });
       });
 

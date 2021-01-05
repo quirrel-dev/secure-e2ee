@@ -34,6 +34,7 @@ export class BrowserEncryptor extends BaseEncryptor {
       {
         name: "AES-GCM",
         iv,
+        tagLength: 128,
       },
       await getKey(key),
       textEncoder.encode(input)
@@ -50,6 +51,7 @@ export class BrowserEncryptor extends BaseEncryptor {
       {
         name: "AES-GCM",
         iv,
+        tagLength: 128,
       },
       await getKey(key),
       cipher
