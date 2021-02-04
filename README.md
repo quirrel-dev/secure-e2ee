@@ -1,6 +1,6 @@
 # secure-e2ee
 
-Secure end-to-end-encryption for Node.js.
+Secure end-to-end-encryption for Node.js and Browser.
 
 ## Usage
 
