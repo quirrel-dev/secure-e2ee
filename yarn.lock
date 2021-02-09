@@ -944,10 +944,10 @@
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.14.tgz#44d2dd0b5de6185089375d976b4ec5caf6861193"
   integrity sha512-G+ITQPXkwTrslfG5L/BksmbLUA0M1iybEsmCWPqzSxsRRhJZimBKJkoMi8fr/CPygPTj4zO5pJH7I2/cm9M7SQ==
 
-"@types/md5@^2.2.1":
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/@types/md5/-/md5-2.2.1.tgz#0e2d65d8f6cc91aafbc9be5a4c08fee9250406ce"
-  integrity sha512-bZB0jqBL7JETFqvRKyuDETFceFaVcLm2MBPP5LFEEL/SZuqLnyvzF37tXmMERDncC3oeEj/fOUw88ftJeMpZaw==
+"@types/md5@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@types/md5/-/md5-2.3.0.tgz#3b6a623091160f4dc75be3173e25f2110dc3fa1f"
+  integrity sha512-556YJ7ejzxIqSSxzyGGpctuZOarNZJt/zlEkhmmDc1f/slOEANHuwu2ZX7YaZ40rMiWoxt8GvAhoDpW1cmSy6A==
   dependencies:
     "@types/node" "*"
 
