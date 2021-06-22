@@ -1,0 +1,96 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Onboarding",
+  "steps": [
+    {
+      "file": "README.md",
+      "description": "Welcome to the tour! `secure-e2ee` is a small wrapper around Node's crypto module.",
+      "line": 1
+    },
+    {
+      "file": "src/base-encryptor.ts",
+      "description": "The `BaseEncrypter` deals with the secure-e2ee-specific stuff.\nThe concrete encryption is offloaded to concrete extensions of the class. They're required to implement `aes-256-gcm`, a symmetric encryption algorithm.\n\nIt uses a so-called \"initialisation vector\": a random, non-predictable value that makes encryption unpredictable (kind of like \"salts\" in hash functions).\nHere's some pseudo-code:\n\n```\ninitialisation_vector = generate_random_string()\n\nencrypted = encrypt(\n  input,\n  secret,\n  initialisation_vector\n)\n\nsend_over_the_wire(encrypted, initialisation_vector)\n\ndecrypted = decrypt(\n  cipher_text,\n  secret,\n  initialisation_vector\n)\n\ndecrypted === input // 🎉\n```\n\nThat would already be enough to simply encrypt our messages,\nbut there's still one problem:\nWhat happens when the secret needs to be changed, e.g. because it has been leaked?\nIf there was only one secret, all previously encrypted messages\nwould become unreadable.\n\nTo prevent this, the Encrypter has so-called *decryption-only* secrets.\nIf a secret needs to be cycled out, you can add it to the *decryption-only* secrets,\nto allow decryption of old messages.\n\nTo make this work, we also send a small secret descriptor over the networks that indicates which secret should be used for decryption.",
+      "line": 43
+    },
+    {
+      "file": "src/base-encryptor.ts",
+      "description": "A `BaseEncryptor` receives 32-character encryption secrets as configuration.",
+      "line": 46,
+      "selection": {
+        "start": {
+          "line": 57,
+          "character": 12
+        },
+        "end": {
+          "line": 57,
+          "character": 25
+        }
+      }
+    },
+    {
+      "file": "src/base-encryptor.ts",
+      "description": "Encryption is pretty straight forward. We generate an initialisation vector, encrypt our input and receive a cipher text and an authentication tag. These are then \"packed\" and returned.",
+      "line": 72
+    },
+    {
+      "file": "src/base-encryptor.ts",
+      "description": "Packing is straight-forward. Take all parts of the message, concat them with `:` as separator.",
+      "line": 14
+    },
+    {
+      "file": "src/base-encryptor.ts",
+      "description": "`unpackMessage` is the reverse of `packMessage`.",
+      "line": 28
+    },
+    {
+      "file": "src/base-encryptor.ts",
+      "description": "The `secretDescriptor` is used to identify the secret used during encryption, so we know which secret to use during decryption (e.g. when a secret was rotated)",
+      "line": 85
+    },
+    {
+      "file": "src/base-encryptor.ts",
+      "description": "Decryption is also straight-forward. Unpack the message, find the matching secret, decrypt.",
+      "line": 95
+    },
+    {
+      "file": "src/base-encryptor.spec.ts",
+      "description": "`testEncryptor` makes sure that all implementations of `BaseEncryptor` behave the same.",
+      "line": 4
+    },
+    {
+      "file": "src/browser-encryptor.spec.ts",
+      "description": "This is how it's used: You just pass it an implementation, and it'll make sure it behaves as specified.",
+      "line": 4
+    },
+    {
+      "file": "src/browser-encryptor.ts",
+      "description": "This is how the browser implementation looks like. It's mostly a wrapper around `window.crypto`!",
+      "line": 26
+    },
+    {
+      "file": "src/encryptor.ts",
+      "description": "The `Encryptor` implementation, which should be named `NodeEncryptor` tbh, is mostly a wrapper around Node's `crypto` module.",
+      "line": 6
+    },
+    {
+      "file": "package.json",
+      "description": "For usage on the server, we export the `Encryptor`, for the browser we export `BrowserEncryptor`. Bundlers read these fields to bundle the right one.",
+      "line": 5
+    },
+    {
+      "file": "mocha.html",
+      "description": "Since `window.crypto` doesn't run on the server and Node's `crypto` doesn't run in the browser, we have two test setups. This one is for the `BrowserEncryptor`.",
+      "line": 18
+    },
+    {
+      "file": "package.json",
+      "description": "You can use these commands to run tests.",
+      "line": 14
+    },
+    {
+      "file": "README.md",
+      "description": "Now you're back at the start, this concludes our tour. Please leave a 5-star-review on TripAdvisor.",
+      "line": 1
+    }
+  ]
+}
