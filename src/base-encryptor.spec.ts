@@ -1,6 +1,5 @@
 import type { Encryptor as EncryptorClass } from "./encryptor";
 import { expect } from "chai";
-import { exec } from "child_process";
 
 export function testEncryptor(_Encryptor: any) {
   const Encryptor = _Encryptor as typeof EncryptorClass;
