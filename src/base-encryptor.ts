@@ -1,46 +1,3 @@
-/*
-The `BaseEncrypter` deals with the secure-e2ee-specific stuff.
-The concrete encryption is offloaded to concrete versions,
-which need to use aes-256-gcm, a symmetric encryption algorithm.
-
-It uses a so-called "initialisation vector":
-a random, non-predictable value
-that makes encryption unpredictable
-(kind of like "salts" in hash functions).
-
-initialisation_vector = generate_random_string()
-
-encrypted = encrypt(
-  input,
-  secret,
-  initialisation_vector
-)
-
-send_over_the_wire(encrypted, initialisation_vector)
-
-decrypted = decrypt(
-  cipher_text,
-  secret,
-  initialisation_vector
-)
-
-decrypted === input // 🎉
-
-That would already be enough to simply encrypt our messages,
-but there's still one problem:
-What happens when the secret needs to be changed, e.g. because it has been leaked?
-If there was only one secret, all previously encrypted messages
-would become unreadable.
-
-To prevent this, the Encrypter has so-called decryption-only-secrets.
-If a secret needs to be cycled out, you can add it to the decryption-only-secrets,
-to allow decryption of previously-encrypted messages.
-
-To make this work, we also send a small secret
-descriptor over the networks, that indicates
-which secret should be used for decryption.
-*/
-
 import b64 from "base64-js";
 
 interface EncryptedMessage {
@@ -69,12 +26,8 @@ function packMessage(message: EncryptedMessage) {
 }
 
 function unpackMessage(message: string): EncryptedMessage {
-  const [
-    secretDescriptor,
-    initialisationVector,
-    cipher,
-    authTag,
-  ] = message.split(":");
+  const [secretDescriptor, initialisationVector, cipher, authTag] =
+    message.split(":");
   return {
     secretDescriptor,
     initialisationVector: b64.toByteArray(initialisationVector),
@@ -117,7 +70,6 @@ export abstract class BaseEncryptor {
   abstract generateInitialisationVector(): Uint8Array;
 
   public async encrypt(input: string): Promise<string> {
-    const secretDescriptor = this.getSecretDescriptor(this.encryptionSecret);
     const initialisationVector = this.generateInitialisationVector();
 
     const [cipher, authTag] = await this._encrypt(
@@ -130,7 +82,7 @@ export abstract class BaseEncryptor {
       cipher,
       authTag,
       initialisationVector,
-      secretDescriptor,
+      secretDescriptor: this.getSecretDescriptor(this.encryptionSecret),
     });
   }
 
@@ -141,12 +93,8 @@ export abstract class BaseEncryptor {
   ): Promise<[cipher: Uint8Array, authTag: Uint8Array]>;
 
   public async decrypt(string: string): Promise<string> {
-    const {
-      cipher,
-      initialisationVector,
-      secretDescriptor,
-      authTag,
-    } = unpackMessage(string);
+    const { cipher, initialisationVector, secretDescriptor, authTag } =
+      unpackMessage(string);
 
     const key = this.decryptionSecretsByDescriptor[secretDescriptor];
     if (!key) {
