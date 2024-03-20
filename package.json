@@ -16,7 +16,7 @@
     "prepack": "yarn build"
   },
   "devDependencies": {
-    "@types/chai": "4.2.21",
+    "@types/chai": "4.3.14",
     "@types/md5": "^2.3.0",
     "@types/mocha": "^8.2.2",
     "@types/node": "^16.7.12",
